@@ -1,39 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 import { CreateAdminDto, UpdateAdminDto } from '../dto/index';
+import { Admin } from '../entities/admin.entity';
 
 @Injectable()
 export class AdminService {
-  private readonly admins: any[] = []; // Array simulado de administradores. Debes reemplazarlo con la lógica de tu base de datos.
+  constructor(@InjectModel(Admin.name) private adminModel: Model<Admin>) {}
 
-  findAll() {
-    return this.admins;
-  }
+  async createAdmin(createAdminDto: CreateAdminDto): Promise<Admin> {
+    const { email } = createAdminDto;
+    const existingAdmin = await this.findAdminByEmail(email);
 
-  findOne(id: string) {
-    return this.admins.find((admin) => admin.id === id);
-  }
-
-  create(createAdminDto: CreateAdminDto) {
-    const newAdmin = { id: Math.random().toString(), ...createAdminDto }; // Genera un ID único simulado.
-    this.admins.push(newAdmin);
-    return newAdmin;
-  }
-
-  update(id: string, updateAdminDto: UpdateAdminDto) {
-    const index = this.admins.findIndex((admin) => admin.id === id);
-    if (index !== -1) {
-      this.admins[index] = { ...this.admins[index], ...updateAdminDto };
-      return this.admins[index];
+    if (existingAdmin) {
+      throw new HttpException(
+        `Admin with email ${email} already exists`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    return null; // Opcional: podrías lanzar una excepción si el administrador no se encuentra.
+
+    const newAdmin = new this.adminModel(createAdminDto);
+    return newAdmin.save();
   }
 
-  remove(id: string) {
-    const index = this.admins.findIndex((admin) => admin.id === id);
-    if (index !== -1) {
-      const removedAdmin = this.admins.splice(index, 1);
-      return removedAdmin;
+  async findAll(): Promise<Admin[]> {
+    return this.adminModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<Admin> {
+    const user = await this.adminModel.findById(id).exec();
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
     }
-    return null; // Opcional: podrías lanzar una excepción si el administrador no se encuentra.
+    return user;
+  }
+
+  async findOneByEmail(email: string): Promise<Admin | null> {
+    return this.adminModel.findOne({ email }).exec();
+  }
+
+  async findAdminByEmail(email: string): Promise<Admin | null> {
+    return this.adminModel.findOne({ email }).exec();
+  }
+
+  async update(id: string, updateUserDto: UpdateAdminDto): Promise<Admin> {
+    const updatedUser = await this.adminModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .exec();
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return updatedUser;
+  }
+
+  async remove(id: string): Promise<void> {
+    const admin = await this.adminModel.findByIdAndDelete(id).exec();
+    if (!admin) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
   }
 }

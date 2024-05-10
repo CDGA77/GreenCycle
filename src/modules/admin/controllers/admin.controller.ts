@@ -29,7 +29,7 @@ export class AdminController {
 
   @Post()
   create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminService.create(createAdminDto);
+    return this.adminService.createAdmin(createAdminDto);
   }
 
   @Put(':id')
