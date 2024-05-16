@@ -10,11 +10,7 @@ import {
   Matches,
 } from 'class-validator';
 import { Document } from 'mongoose';
-
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-}
+import { Role } from 'src/auth/auth.type';
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -41,9 +37,9 @@ export class User extends Document {
 
   @IsNotEmpty()
   @IsOptional()
-  @IsEnum(UserRole)
-  @Prop({ type: String, enum: UserRole, default: UserRole.USER })
-  role: UserRole;
+  @IsEnum(Role)
+  @Prop({ type: String, enum: Role, default: Role.USER })
+  role: Role;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
