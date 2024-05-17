@@ -11,7 +11,7 @@ import {
   Matches,
 } from 'class-validator';
 import { Document } from 'mongoose';
-import { Role } from 'src/auth/auth.type';
+import { Role } from 'src/auth/types/auth.type';
 
 @Schema({ timestamps: true })
 export class Admin extends Document {

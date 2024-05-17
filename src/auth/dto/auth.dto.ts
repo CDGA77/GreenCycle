@@ -1,4 +1,4 @@
-import { Role } from './auth.type';
+import { Role } from '../types/auth.type';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AuthDto {
