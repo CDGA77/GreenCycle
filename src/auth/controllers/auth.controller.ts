@@ -1,11 +1,16 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Headers,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthDto, RegisterDto } from '../dto/auth.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
-import { Role } from '../types/auth.type';
-import { Roles } from '../decorators/roles.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -24,19 +29,16 @@ export class AuthController {
     return this.authService.login(authDto);
   }
 
-  @ApiOperation({ summary: 'Ruta protegida para administradores' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @Post('admin-route')
-  async adminRoute() {
-    return 'Esta es una ruta protegida para administradores';
-  }
-
-  @ApiOperation({ summary: 'Ruta protegida para usuarios' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER)
-  @Post('user-route')
-  async userRoute() {
-    return 'Esta es una ruta protegida para usuarios';
+  @ApiOperation({ summary: 'Verificar token' })
+  @Get('check')
+  @UseGuards(JwtAuthGuard)
+  async check(@Headers('Authorization') authHeader: string) {
+    try {
+      const token = authHeader.replace('Bearer ', '');
+      return await this.authService.check(token);
+    } catch (error) {
+      console.error('Error in token verification:', error);
+      throw new InternalServerErrorException('Failed to verify token');
+    }
   }
 }

@@ -13,7 +13,9 @@ import { Admin } from '../entities/admin.entity';
 export class AdminService {
   constructor(@InjectModel(Admin.name) private adminModel: Model<Admin>) {}
 
-  async createAdmin(createAdminDto: CreateAdminDto): Promise<Admin> {
+  async createAdmin(
+    createAdminDto: CreateAdminDto,
+  ): Promise<{ message: string; admin: Admin }> {
     const { email } = createAdminDto;
     const existingAdmin = await this.findAdminByEmail(email);
 
@@ -25,7 +27,11 @@ export class AdminService {
     }
 
     const newAdmin = new this.adminModel(createAdminDto);
-    return newAdmin.save();
+    const savedAdmin = await newAdmin.save();
+    return {
+      message: 'Admin created successfully',
+      admin: savedAdmin,
+    };
   }
 
   async findAll(): Promise<Admin[]> {
@@ -48,20 +54,29 @@ export class AdminService {
     return this.adminModel.findOne({ email }).exec();
   }
 
-  async update(id: string, updateUserDto: UpdateAdminDto): Promise<Admin> {
+  async update(
+    id: string,
+    updateUserDto: UpdateAdminDto,
+  ): Promise<{ message: string; admin: Admin }> {
     const updatedUser = await this.adminModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
     if (!updatedUser) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    return updatedUser;
+    return {
+      message: 'Admin updated successfully',
+      admin: updatedUser,
+    };
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string }> {
     const admin = await this.adminModel.findByIdAndDelete(id).exec();
     if (!admin) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+    return {
+      message: 'Admin deleted successfully',
+    };
   }
 }

@@ -1,13 +1,21 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto, AuthDto } from '../dto/auth.dto';
 import { Role } from '../types/auth.type';
 import { AdminService } from 'src/modules/admin/services/admin.service';
 import { UsersService } from 'src/modules/users/services/users.service';
+import { JwtPayload, Tokens } from '../interface/index';
 
 @Injectable()
 export class AuthService {
+  verifyToken() {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     private readonly userService: UsersService,
     private readonly adminService: AdminService,
@@ -16,47 +24,48 @@ export class AuthService {
 
   async register(registerDto: RegisterDto): Promise<{
     accessToken: string;
-    user: { id: number; username: string; role: Role };
+    user: { id: number; username: string; role: Role; email: string };
   }> {
     try {
-      const { username, password, role } = registerDto;
+      const { username, password, role, email } = registerDto;
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      let user: any;
+      let user;
 
       if (role === Role.USER) {
         user = await this.userService.createUser({
           username,
           password: hashedPassword,
-          email: registerDto.email,
-          role: registerDto.role,
+          email,
+          role,
         });
       } else {
         user = await this.adminService.createAdmin({
           username,
           password: hashedPassword,
-          email: registerDto.email,
-          role: registerDto.role,
+          email,
+          role,
         });
       }
 
-      const payload = {
+      const payload: JwtPayload = {
         id: user.id,
         username: user.username,
         role: user.role,
         email: user.email,
         password: user.password,
       };
-      console.log('Register payload :', payload);
-      console.log(process.env.JWT_SECRET);
-      const accessToken = this.jwtService.sign(payload, {
-        secret: process.env.JWT_SECRET,
-      });
-      console.log('Generated access token:', accessToken);
+
+      const { access_token } = await this.getTokens(payload);
 
       return {
-        accessToken,
-        user: { id: user.id, username: user.username, role: user.role, email: user.email},
+        accessToken: access_token,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          email: user.email,
+        },
       };
     } catch (error) {
       console.error('Error in register:', error);
@@ -66,50 +75,84 @@ export class AuthService {
 
   async login(authDto: AuthDto): Promise<{
     accessToken: string;
-    user: { id: number; username: string; role: Role };
+    user: { id: number; username: string; role: Role; email: string };
   }> {
     try {
       const { email, password } = authDto;
 
-      const user = await this.userService.findUserByEmail(email);
-      const admin = await this.adminService.findAdminByEmail(email);
+      const user =
+        (await this.userService.findUserByEmail(email)) ||
+        (await this.adminService.findAdminByEmail(email));
 
-      if (!user && !admin) {
-        throw new Error('Credenciales inválidas');
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
       }
 
-      const isValidPassword = await bcrypt.compare(
-        password,
-        user ? user.password : admin.password,
-      );
+      const isValidPassword = await bcrypt.compare(password, user.password);
 
       if (!isValidPassword) {
-        throw new Error('Credenciales inválidas');
+        throw new UnauthorizedException('Invalid credentials');
       }
 
-      const payload = {
-        id: user ? user.id : admin.id,
-        username: user ? user.username : admin.username,
-        role: user ? Role.USER : Role.ADMIN,
+      const payload: JwtPayload = {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        email: user.email,
+        password: user.password,
       };
-      console.log('Login payload:', payload);
-      const accessToken = this.jwtService.sign(payload, {
-        secret: process.env.JWT_SECRET,
-      });
-      console.log('Generated access token:', accessToken);
+
+      const { access_token } = await this.getTokens(payload);
 
       return {
-        accessToken,
+        accessToken: access_token,
         user: {
-          id: user ? user.id : admin.id,
-          username: user ? user.username : admin.username,
-          role: user ? Role.USER : Role.ADMIN,
-          email: user ? user.email : admin.email,
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          email: user.email,
         },
       };
     } catch (error) {
       console.error('Error in login:', error);
       throw new InternalServerErrorException('Failed to login');
     }
+  }
+
+  async check(token: string): Promise<JwtPayload> {
+    try {
+      const payload = this.jwtService.verify<JwtPayload>(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      return payload;
+    } catch (error) {
+      console.error('Error in token validation:', error);
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async getTokens(jwtPayload: JwtPayload): Promise<Tokens> {
+    const secretKey = process.env.JWT_SECRET;
+    if (!secretKey) {
+      throw new Error('JWT_SECRET is not set');
+    }
+    const accessTokenOptions = {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '15m',
+    };
+
+    const accessToken = await this.signToken(
+      jwtPayload,
+      secretKey,
+      accessTokenOptions,
+    );
+
+    return { access_token: accessToken };
+  }
+
+  async signToken(payload: JwtPayload, secretKey: string, options: any) {
+    return await this.jwtService.signAsync(payload, {
+      secret: secretKey,
+      ...options,
+    });
   }
 }

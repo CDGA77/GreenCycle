@@ -13,7 +13,9 @@ import { User } from '../entities/users.entity';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(
+    createUserDto: CreateUserDto,
+  ): Promise<{ message: string; user: User }> {
     const { email } = createUserDto;
     const existingUser = await this.findUserByEmail(email);
 
@@ -25,7 +27,11 @@ export class UsersService {
     }
 
     const newUser = new this.userModel(createUserDto);
-    return newUser.save();
+    const savedUser = await newUser.save();
+    return {
+      message: 'User created successfully',
+      user: savedUser,
+    };
   }
 
   async findAll(): Promise<User[]> {
@@ -48,20 +54,29 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<{ message: string; user: User }> {
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
     if (!updatedUser) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
-    return updatedUser;
+    return {
+      message: 'User updated successfully',
+      user: updatedUser,
+    };
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string }> {
     const user = await this.userModel.findByIdAndDelete(id).exec();
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+    return {
+      message: 'User deleted successfully',
+    };
   }
 }
