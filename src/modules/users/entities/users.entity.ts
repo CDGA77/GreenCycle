@@ -10,36 +10,42 @@ import {
   Matches,
 } from 'class-validator';
 import { Document } from 'mongoose';
-import { Role } from 'src/auth/auth.type';
+import { Role } from 'src/auth/types/auth.type';
 
-@Schema({ timestamps: true })
+// Definición del esquema de Mongoose para el modelo de usuario
+@Schema({ timestamps: true }) // Se establece que el esquema tenga campos de fecha de creación y actualización
 export class User extends Document {
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value.toLowerCase())
-  @Length(3, 40)
-  @Prop({ required: true })
-  username?: string;
+  // Propiedad del esquema: nombre de usuario
+  @IsOptional() // Indica que el campo es opcional
+  @IsString() // Valida que el valor sea una cadena de texto
+  @Transform(({ value }) => value.toLowerCase()) // Transforma el valor a minúsculas antes de validarlo
+  @Length(3, 40) // Valida la longitud del nombre de usuario
+  @Prop({ required: true }) // Define la propiedad como requerida en el esquema de Mongoose
+  username?: string; // Define el tipo de la propiedad y su nombre
 
-  @IsEmail()
-  @Transform(({ value }) => value.toLowerCase())
-  @Prop({ required: true })
-  email: string;
+  // Propiedad del esquema: email
+  @IsEmail() // Valida que el valor sea una dirección de correo electrónico válida
+  @Transform(({ value }) => value.toLowerCase()) // Transforma el valor a minúsculas antes de validarlo
+  @Prop({ required: true }) // Define la propiedad como requerida en el esquema de Mongoose
+  email: string; // Define el tipo de la propiedad y su nombre
 
-  @IsNotEmpty()
-  @IsString()
-  @Length(8, 100)
+  // Propiedad del esquema: contraseña
+  @IsNotEmpty() // Valida que el valor no esté vacío
+  @IsString() // Valida que el valor sea una cadena de texto
+  @Length(8, 100) // Valida la longitud de la contraseña
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/, {
-    message: 'password too weak',
-  })
-  @Prop({ required: true })
-  password: string;
+    message: 'password too weak', // Define un mensaje personalizado para el error
+  }) // Valida la fortaleza de la contraseña mediante expresiones regulares
+  @Prop({ required: true }) // Define la propiedad como requerida en el esquema de Mongoose
+  password: string; // Define el tipo de la propiedad y su nombre
 
-  @IsNotEmpty()
-  @IsOptional()
-  @IsEnum(Role)
-  @Prop({ type: String, enum: Role, default: Role.USER })
-  role: Role;
+  // Propiedad del esquema: rol del usuario
+  @IsNotEmpty() // Valida que el valor no esté vacío
+  @IsOptional() // Indica que el campo es opcional
+  @IsEnum(Role) // Valida que el valor esté dentro de un conjunto de valores enumerados
+  @Prop({ type: String, enum: Role, default: Role.USER }) // Define la propiedad como tipo enumerado con un valor por defecto
+  role: Role; // Define el tipo de la propiedad y su nombre
 }
 
+// Creación del esquema de Mongoose para el modelo de usuario
 export const UserSchema = SchemaFactory.createForClass(User);
