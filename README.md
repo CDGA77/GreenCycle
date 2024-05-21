@@ -47,7 +47,7 @@
 # GreenCycle - Sistema de Gestión de Usuarios
 
 
-<div>
+<div align="center">
 <img src="logo.png" />
 </div>
 
