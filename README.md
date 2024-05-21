@@ -46,7 +46,10 @@
 
 # GreenCycle - Sistema de Gestión de Usuarios
 
-![GreenCycle](../logo.png)
+
+<div>
+<img src="../logo.png">
+</div>
 
 GreenCycle es un robusto sistema de gestión de usuarios que proporciona funciones de autenticación y gestión de roles para administradores y usuarios. Construido con el poderoso framework Nest.js, esta aplicación permite a los usuarios registrarse, iniciar sesión y acceder a recursos protegidos según su rol. Los datos de usuarios y administradores se almacenan de forma segura en una base de datos MongoDB alojada en MongoDB Atlas.
 
