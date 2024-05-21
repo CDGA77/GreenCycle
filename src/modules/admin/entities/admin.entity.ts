@@ -11,36 +11,38 @@ import {
   Matches,
 } from 'class-validator';
 import { Document } from 'mongoose';
-import { Role } from 'src/auth/types/auth.type';
+import { Role } from 'src/auth/types/auth.type'; // Asumiendo que 'Role' está definido en este directorio
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true }) // Define el esquema de Mongoose con timestamp automático
 export class Admin extends Document {
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value.toLowerCase())
-  @Length(3, 40)
-  @Prop({ required: true })
-  username?: string;
+  // Define la clase Admin que extiende Document de Mongoose
+  @IsOptional() // Indica que el campo es opcional
+  @IsString() // Valida que el campo sea una cadena de texto
+  @Transform(({ value }) => value.toLowerCase()) // Transforma el valor a minúsculas
+  @Length(3, 40) // Limita la longitud del campo
+  @Prop({ required: true }) // Define la propiedad del esquema con validación de requerimiento
+  username?: string; // Nombre de usuario (opcional)
 
-  @IsEmail()
-  @Transform(({ value }) => value.toLowerCase())
-  @Prop({ required: true })
-  email: string;
+  @IsEmail() // Valida que el campo sea una dirección de correo electrónico
+  @Transform(({ value }) => value.toLowerCase()) // Transforma el valor a minúsculas
+  @Prop({ required: true }) // Define la propiedad del esquema con validación de requerimiento
+  email: string; // Dirección de correo electrónico
 
-  @IsNotEmpty()
-  @IsString()
-  @Length(8, 100)
+  @IsNotEmpty() // Valida que el campo no esté vacío
+  @IsString() // Valida que el campo sea una cadena de texto
+  @Length(8, 100) // Limita la longitud del campo
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/, {
-    message: 'password too weak',
+    message: 'password too weak', // Mensaje de error personalizado si no se cumple la expresión regular
   })
-  @Prop({ required: true })
-  password: string;
+  @Prop({ required: true }) // Define la propiedad del esquema con validación de requerimiento
+  password: string; // Contraseña
 
-  @IsOptional()
-  @IsIn(Object.values(Role))
-  @IsEnum(Role)
-  @Prop({ type: String, enum: Role, default: Role.USER })
-  role: Role;
+  @IsOptional() // Indica que el campo es opcional
+  @IsIn(Object.values(Role)) // Valida que el valor esté dentro de los valores enumerados de 'Role'
+  @IsEnum(Role) // Valida que el valor sea parte del enum 'Role'
+  @Prop({ type: String, enum: Role, default: Role.USER }) // Define la propiedad del esquema con valores enumerados y un valor por defecto
+  role: Role; // Rol del administrador
 }
 
+// Crea y exporta el esquema de Mongoose para la clase Admin
 export const AdminSchema = SchemaFactory.createForClass(Admin);

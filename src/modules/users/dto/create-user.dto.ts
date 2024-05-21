@@ -1,23 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+// DTO (Data Transfer Object) para la creación de usuarios
 export class CreateUserDto {
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  username: string;
+  // Propiedad para el nombre de usuario
+  @ApiProperty() // Decorador de Swagger para documentación
+  @IsString() // Validador: el valor debe ser una cadena de texto
+  @IsOptional() // Validador: el campo es opcional
+  username: string; // Tipo y nombre de la propiedad
 
-  @ApiProperty()
-  @IsEmail()
-  email: string;
+  // Propiedad para el email del usuario
+  @ApiProperty() // Decorador de Swagger para documentación
+  @IsEmail() // Validador: el valor debe ser un email válido
+  email: string; // Tipo y nombre de la propiedad
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  password: string;
+  // Propiedad para la contraseña del usuario
+  @ApiProperty() // Decorador de Swagger para documentación
+  @IsNotEmpty() // Validador: el valor no debe estar vacío
+  @IsString() // Validador: el valor debe ser una cadena de texto
+  password: string; // Tipo y nombre de la propiedad
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  role: string;
+  // Propiedad para el rol del usuario
+  @ApiProperty() // Decorador de Swagger para documentación
+  @IsOptional() // Validador: el campo es opcional
+  @IsString() // Validador: el valor debe ser una cadena de texto
+  role: string; // Tipo y nombre de la propiedad
 }

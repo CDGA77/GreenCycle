@@ -6,10 +6,11 @@ import { Admin, AdminSchema } from './entities/admin.entity';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
+    // Importa el módulo MongooseModule para la integración con MongoDB
+    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]), // Define el esquema de Mongoose para el modelo de Admin
   ],
-  controllers: [AdminController],
-  providers: [AdminService],
-  exports: [AdminService],
+  controllers: [AdminController], // Declara los controladores que pertenecen a este módulo
+  providers: [AdminService], // Declara los servicios que pertenecen a este módulo
+  exports: [AdminService], // Exporta el servicio AdminService para su uso en otros módulos
 })
-export class AdminModule {}
+export class AdminModule {} // Define y exporta el módulo AdminModule
